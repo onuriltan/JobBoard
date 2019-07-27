@@ -1,11 +1,7 @@
 const url = 'http://localhost:9000/graphql/';
 
 export async function loadJobs() {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {'content-type': 'application/json'},
-    body: JSON.stringify({
-      query: `{
+  const query = `{
         jobs {
           id
           title
@@ -14,19 +10,13 @@ export async function loadJobs() {
             name
           }
         }
-      }`
-    })
-  });
-  const responseBody = await response.json();
-  return responseBody.data.jobs;
+      }`;
+  const { jobs } = await graphqlRequest(query);
+  return jobs
 }
 
 export async function loadJob(id) {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {'content-type': 'application/json'},
-    body: JSON.stringify({
-      query: `query JobQuery($id: ID!){
+  const query = `query JobQuery($id: ID!){
         job(id:$id) {
           id
           title
@@ -36,10 +26,21 @@ export async function loadJob(id) {
             name
           }
         }
-      }`,
-      variables: { id }
-    })
+      }`;
+  const { job } = await graphqlRequest(query, { id });
+  return job
+}
+
+async function graphqlRequest(query, variables) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query, variables })
   });
   const responseBody = await response.json();
-  return responseBody.data.job;
+  if(responseBody.errors) {
+    const message = responseBody.errors.map(error => error.msg).join('\n');
+    throw new Error(message)
+  }
+  return responseBody.data;
 }
