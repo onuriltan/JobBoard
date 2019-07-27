@@ -1,3 +1,8 @@
 type Query {
-    greeting :String
+    jobs :[Job]
+}
+type Job {
+    id: ID! # GraphQL assings id, and ! means required
+    title: String
+    description: String
 }
