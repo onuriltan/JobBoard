@@ -14,5 +14,11 @@ const Company = {
   jobs: (company) => db.jobs.list().filter(job => company.id === job.companyId)
 };
 
-module.exports = { Query, Job, Company };
+const Mutation = {
+  createJob: (root, { companyId, title, description }) => {
+    return db.jobs.create({ companyId, title, description });
+  }
+};
+
+module.exports = { Query, Job, Company, Mutation };
 
