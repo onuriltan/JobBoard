@@ -10,6 +10,9 @@ const Job = {
   company: (job) => db.companies.get(job.companyId)
 };
 
+const Company = {
+  jobs: (company) => db.jobs.list().filter(job => company.id === job.companyId)
+};
 
-module.exports = { Query, Job };
+module.exports = { Query, Job, Company };
 
