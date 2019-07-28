@@ -12,12 +12,18 @@ type Company {
 }
 
 type Mutation {
-    createJob(companyId: ID, title: String, description: String): ID
+    createJob(input:CreateJobInput): Job
 }
 
 type Job {
     id: ID! # GraphQL understands id, and ! means required
     title: String
     company: Company
+    description: String
+}
+
+input CreateJobInput {
+    companyId: ID
+    title: String
     description: String
 }
