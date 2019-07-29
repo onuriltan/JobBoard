@@ -26,6 +26,7 @@ export class JobDetail extends Component {
         <h2 className="subtitle">
           <Link to={`/companies/${job.company.id}`}>{job.company.name}</Link>
         </h2>
+        { job === 'asd' ? job.descirption : null}
         <div className="box">{job.description}</div>
       </div>
     );
