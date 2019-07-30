@@ -23,7 +23,10 @@ const typeDefs = fs.readFileSync('./schema.graphql', {encoding: 'utf-8'});
 const resolvers = require('./resolvers');
 // Make Schema
 const schema = makeExecutableSchema( { typeDefs, resolvers });
-app.use('/graphql', graphqlExpress({schema}));
+app.use('/graphql', graphqlExpress(req => ({
+  schema,
+  context: { user: req.user} // req.user comes from express-jwt
+})));
 app.use('/graphiql', graphiqlExpress({endpointURL: '/graphql'}));
 
 
