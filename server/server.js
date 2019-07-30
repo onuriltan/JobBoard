@@ -25,7 +25,8 @@ const resolvers = require('./resolvers');
 const schema = makeExecutableSchema( { typeDefs, resolvers });
 app.use('/graphql', graphqlExpress(req => ({
   schema,
-  context: { user: req.user} // req.user comes from express-jwt
+  // fetch user by passing jwt token do db.users.get() func
+  context: { user: req.user && db.users.get(req.user.sub)} // req.user comes from express-jwt
 })));
 app.use('/graphiql', graphiqlExpress({endpointURL: '/graphql'}));
 
