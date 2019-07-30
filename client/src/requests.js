@@ -1,3 +1,5 @@
+import { getAccessToken, isLoggedIn } from "./auth";
+
 const url = 'http://localhost:9000/graphql/';
 
 export async function loadJobs() {
@@ -62,11 +64,15 @@ export async function createJob(input) {
 }
 
 async function graphqlRequest(query, variables) {
-  const response = await fetch(url, {
+  const request = {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ query, variables })
-  });
+  };
+  if(isLoggedIn()){
+    request.headers['authorization'] = `Bearer ${getAccessToken()}`
+  }
+  const response = await fetch(url, request);
   const responseBody = await response.json();
   if (responseBody.errors) {
     const message = responseBody.errors.map(error => error.msg).join('\n');
