@@ -1,6 +1,32 @@
 import { getAccessToken, isLoggedIn } from "./auth";
+import { ApolloClient, HttpLink, InMemoryCache } from 'apollo-boost'
 
-const url = 'http://localhost:9000/graphql/';
+const endpointURL = 'http://localhost:9000/graphql/';
+
+const client = new ApolloClient({
+  // specify how to connect to the client(Http here)
+  link: new HttpLink({ uri: endpointURL }),
+  // cache requests
+  cache: new InMemoryCache()
+});
+
+async function graphqlRequest(query, variables) {
+  const request = {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  };
+  if(isLoggedIn()){
+    request.headers['authorization'] = `Bearer ${getAccessToken()}`
+  }
+  const response = await fetch(endpointURL, request);
+  const responseBody = await response.json();
+  if (responseBody.errors) {
+    const message = responseBody.errors.map(error => error.msg).join('\n');
+    throw new Error(message)
+  }
+  return responseBody.data;
+}
 
 export async function loadJobs() {
   const query = `{
@@ -63,20 +89,4 @@ export async function createJob(input) {
   return job
 }
 
-async function graphqlRequest(query, variables) {
-  const request = {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ query, variables })
-  };
-  if(isLoggedIn()){
-    request.headers['authorization'] = `Bearer ${getAccessToken()}`
-  }
-  const response = await fetch(url, request);
-  const responseBody = await response.json();
-  if (responseBody.errors) {
-    const message = responseBody.errors.map(error => error.msg).join('\n');
-    throw new Error(message)
-  }
-  return responseBody.data;
-}
+
