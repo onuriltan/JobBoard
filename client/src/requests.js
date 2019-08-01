@@ -1,5 +1,6 @@
 import { getAccessToken, isLoggedIn } from "./auth";
 import { ApolloClient, HttpLink, InMemoryCache } from 'apollo-boost'
+import gql from 'graphql-tag'
 
 const endpointURL = 'http://localhost:9000/graphql/';
 
@@ -29,7 +30,7 @@ async function graphqlRequest(query, variables) {
 }
 
 export async function loadJobs() {
-  const query = `{
+  const query = gql `{
         jobs {
           id
           title
@@ -39,12 +40,13 @@ export async function loadJobs() {
           }
         }
       }`;
-  const { jobs } = await graphqlRequest(query);
+  const { data: { jobs } } = await client.query( { query });
   return jobs
 }
 
 export async function loadJob(id) {
-  const query = `query JobQuery($id: ID!){
+  const query = gql`
+      query JobQuery($id: ID!){
         job(id:$id) {
           id
           title
@@ -55,12 +57,12 @@ export async function loadJob(id) {
           }
         }
       }`;
-  const { job } = await graphqlRequest(query, { id });
+  const { data: { job } } = await client.query( { query, variables: { id } });
   return job
 }
 
 export async function loadCompany(id) {
-  const query = `query CompanyQuery($id:ID!){
+  const query = gql`query CompanyQuery($id:ID!){
                     company(id: $id){
                       name
                       description
@@ -70,12 +72,12 @@ export async function loadCompany(id) {
                       }
                     }
                   }`;
-  const { company } = await graphqlRequest(query, { id });
+  const { data: { company } } = await client.query( { query, variables: { id } });
   return company
 }
 
 export async function createJob(input) {
-  const mutation = `mutation CreateJob($input: CreateJobInput){
+  const mutation = gql `mutation CreateJob($input: CreateJobInput){
                   job: createJob(input: $input) {
                     id
                     title
@@ -85,7 +87,7 @@ export async function createJob(input) {
                     }
                   }
                 }`;
-  const { job } = await graphqlRequest(mutation, { input });
+  const { job } = await client.mutate( { mutation, variables: { input } });
   return job
 }
 
