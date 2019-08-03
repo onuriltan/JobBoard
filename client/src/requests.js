@@ -37,7 +37,9 @@ export async function loadJobs() {
           }
         }
       }`;
-  const { data: { jobs } } = await client.query( { query });
+  // fetch policy no cache means it will be send to server every time
+  // because we need to query each time loadJobs called because a new job could be created by someone else
+  const { data: { jobs } } = await client.query( { query, fetchPolicy:'no-cache' });
   return jobs
 }
 
@@ -84,7 +86,7 @@ export async function createJob(input) {
                     }
                   }
                 }`;
-  const { job } = await client.mutate( { mutation, variables: { input } });
+  const { data: { job } } = await client.mutate( { mutation, variables: { input } });
   return job
 }
 
