@@ -26,32 +26,55 @@ const client = new ApolloClient({
   cache: new InMemoryCache()
 });
 
-export async function loadJobs() {
-  const query = gql`{
-      jobs {
-          id
-          title
-          company{
-              id
-              name
-          }
-      }
-  }`;
-  // fetch policy no cache means it will be send to server every time
-  // because we need to query each time loadJobs called because a new job could be created by someone else
-  const { data: { jobs } } = await client.query({ query, fetchPolicy: 'no-cache' });
-  return jobs
-}
+const jobDetailFragment = gql`
+    fragment JobDetail on Job {
+        id
+        title
+        company {
+            id
+            name
+        }
+        description
+    }
+`;
+
+const loadJobsQuery = gql`{
+    jobs {
+        id
+        title
+        company{
+            id
+            name
+        }
+    }
+}`;
 
 const loadJobQuery = gql`
     query JobQuery($id: ID!){
         job(id:$id) {
-            id
-            title
+            ...JobDetail
+        }
+    }
+    ${jobDetailFragment}
+`;
+
+const createJobMutation = gql`
+    mutation CreateJob($input: CreateJobInput){
+        job: createJob(input: $input) {
+            ...JobDetail
+        }
+    }
+    ${jobDetailFragment}
+`;
+
+const loadCompanyQuery = gql`
+    query CompanyQuery($id:ID!){
+        company(id: $id){
+            name
             description
-            company {
+            jobs {
                 id
-                name
+                title
             }
         }
     }`;
@@ -62,35 +85,22 @@ export async function loadJob(id) {
 }
 
 export async function loadCompany(id) {
-  const query = gql`query CompanyQuery($id:ID!){
-      company(id: $id){
-          name
-          description
-          jobs {
-              id
-              title
-          }
-      }
-  }`;
-  const { data: { company } } = await client.query({ query, variables: { id } });
+  const { data: { company } } = await client.query({ query: loadCompanyQuery, variables: { id } });
   return company
 }
 
+export async function loadJobs() {
+  // fetch policy no cache means it will be send to server every time
+  // because we need to query each time loadJobs called because a new job could be created by someone else
+  const { data: { jobs } } = await client.query({ query: loadJobsQuery, fetchPolicy: 'no-cache' });
+  return jobs
+}
+
+
 export async function createJob(input) {
-  const mutation = gql`mutation CreateJob($input: CreateJobInput){
-      job: createJob(input: $input) {
-          id
-          title
-          description
-          company {
-              id
-              name
-          }
-      }
-  }`;
   const { data: { job } } = await client.mutate({
-    mutation,
-    variables: { input } ,
+    createJobMutation,
+    variables: { input },
     /*
      update will be called after mutation has been executed
      tell Apollo Client whenever run the current mutation take the data from returned response
@@ -100,7 +110,7 @@ export async function createJob(input) {
     update: (cache, { data }) => {
       cache.writeQuery({
         query: loadJobQuery,
-        variables:{ id: data.job.id },
+        variables: { id: data.job.id },
         data
       })
     }
