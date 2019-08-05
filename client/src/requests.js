@@ -1,6 +1,5 @@
 import { getAccessToken, isLoggedIn } from "./auth";
-import { ApolloClient, HttpLink, ApolloLink, InMemoryCache } from 'apollo-boost'
-import gql from 'graphql-tag'
+import { ApolloClient, HttpLink, ApolloLink, InMemoryCache, gql } from 'apollo-boost'
 
 const endpointURL = 'http://localhost:9000/graphql/';
 
@@ -99,7 +98,7 @@ export async function loadJobs() {
 
 export async function createJob(input) {
   const { data: { job } } = await client.mutate({
-    createJobMutation,
+    mutation: createJobMutation,
     variables: { input },
     /*
      update will be called after mutation has been executed
